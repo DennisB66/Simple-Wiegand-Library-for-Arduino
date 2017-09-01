@@ -1,0 +1,22 @@
+{
+  "name": "Simple-Wiegand-Library-for-Arduino",
+  "keywords": "wiegand, eeprom",
+  "description": "Arduino library for reading IDs from a Wiegand compatible device and checking against IDs in the Arduino EEPROM.
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/DennisB66/Simple-Wiegand-Library-for-Arduino"
+  },
+  "authors":
+  [
+    {
+      "name": "Dennis Buis",
+      "email": "dennis.buis@gmail.com",
+      "url": "",
+      "maintainer": true
+    }
+  ],
+  "version": "0.5",
+  "frameworks": "arduino",
+  "platforms": "*"
+}
