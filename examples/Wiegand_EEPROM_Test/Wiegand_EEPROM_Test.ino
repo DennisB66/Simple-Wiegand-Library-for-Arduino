@@ -1,8 +1,10 @@
-// Copyright Dennis Buis 2017
-// MIT License
-//
-// Simple Wiegand Library for Arduino - example using Wiegand_EEPROM.h
-// https://github.com/DennisB66/Simple_Wiegand_Library_for_Arduino
+// Copyright	: Dennis Buis (2017)
+// License  	: MIT
+// Platform		: Arduino
+// Library		:	Simple Wiegand Library for Arduino
+// File				: Wiegand_EEPROM_Test.ino
+// Purpose		: Example code for Wiegand_EEPROM library (see Wiegand_EEPROM.h)
+// Repository	:	https://github.com/DennisB66/Simple-Wiegand-Library-for-Arduino
 
 #include <Wiegand_EEPROM.h>
 
@@ -11,7 +13,7 @@ Wiegand_EEPROM wg;
 int mode = NORMAL;  // active mode
 
 void setup() {
-	Serial.begin( 9600);
+  Serial.begin( 9600);
 
   Serial.println( "=================================");
   Serial.println( "-  Arduino RFID WG reader test  -");
@@ -19,13 +21,13 @@ void setup() {
   Serial.println( "");
   Serial.println( "RFID reader initalizing... ");
 
-	wg.begin();
+  wg.begin();
 
-	if ( wg.hasDevice()) {
-		Serial.println( "RFID reader ready");
-	} else {
-		Serial.println( "No RFID reader attached!");
-	}
+  if ( wg.hasDevice()) {
+    Serial.println( "RFID reader ready");
+  } else {
+    Serial.println( "No RFID reader attached!");
+  }
 
   printTags();
   printMenu();
@@ -34,9 +36,9 @@ void setup() {
 void loop() {
   if ( wg.available()) {
     Serial.print( "Wiegand HEX = ");
-	  Serial.print( wg.getCode(), HEX);
-		Serial.print( " (W");
-		Serial.print( wg.getType());
+    Serial.print( wg.getCode(), HEX);
+    Serial.print( " (W");
+    Serial.print( wg.getType());
     Serial.print( ")");
     Serial.println();
 
@@ -49,12 +51,12 @@ void loop() {
     if ( mode == INSERT) {
       if ( wg.getSlot() < 0) {
         if ( wg.createTag()) {
-        	Serial.print( "Inserted: ");
-        	Serial.print( wg.getCode(), HEX);
-        	Serial.println();
-				} else {
-					Serial.println( "Warning: max tags stored!");
-				}
+          Serial.print( "Inserted: ");
+          Serial.print( wg.getCode(), HEX);
+          Serial.println();
+        } else {
+          Serial.println( "Warning: max tags stored!");
+        }
       } else {
         Serial.println( "Warning: tag already existing!");
       }
@@ -69,7 +71,7 @@ void loop() {
         	Serial.print( "Deleted: ");
         	Serial.print( wg.getCode(), HEX);
         	Serial.println();
-				}
+        }
       }
     }
 
@@ -114,12 +116,12 @@ void printTag( int slot, bool flag)
     unsigned long code = wg.getCode( slot);
 
     // check if tag data is valid
-  //  if ( code > 0) {
-			char tmp[16]; sprintf( tmp, "%08lX", code);
-		  Serial.print( tmp);
-	//	} else {
-	//		Serial.print( "--------");
-  //  }
+    if ( code > 0) {
+      char tmp[16]; sprintf( tmp, "%08lX", code);
+      Serial.print( tmp);
+    } else {
+      Serial.print( "--------");
+    }
   }
 
   if ( flag) {
