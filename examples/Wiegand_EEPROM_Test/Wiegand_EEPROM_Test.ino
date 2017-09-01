@@ -136,9 +136,9 @@ void printTag( int slot, bool flag)
 // print all tag data in EEPROM database to the serial monitor, active tag in slot = idx
 void printTags()
 {
-   Serial.println();
+  Serial.println();
 
-   for ( int i = 0; i < MAX_TAGS; i++) {
+  for ( int i = 0; i < MAX_TAGS; i++) {
     printTag( i, i == wg.getSlot());
   }
 }
