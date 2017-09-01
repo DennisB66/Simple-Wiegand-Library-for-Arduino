@@ -1,10 +1,10 @@
-// Copyright	: Dennis Buis (2017)
-// License  	: MIT
-// Platform		: Arduino
-// Library		:	Simple Wiegand Library for Arduino
-// File				: Wiegand_EEPROM_Test.ino
-// Purpose		: Example code for Wiegand_EEPROM library (see Wiegand_EEPROM.h)
-// Repository	:	https://github.com/DennisB66/Simple-Wiegand-Library-for-Arduino
+// Copyright  : Dennis Buis (2017)
+// License    : MIT
+// Platform   : Arduino
+// Library    : Simple Wiegand Library for Arduino
+// File       : Wiegand_EEPROM_Test.ino
+// Purpose    : Example code for Wiegand_EEPROM library (see Wiegand_EEPROM.h)
+// Repository : https://github.com/DennisB66/Simple-Wiegand-Library-for-Arduino
 
 #include <Wiegand_EEPROM.h>
 
