@@ -72,47 +72,47 @@ unsigned long Wiegand::getCode()
 // returns the last active Wiegand type
 int Wiegand::getType()
 {
-  return _type;                      // type ~ nr bit received (4 / 8 / 26 / 34)
+  return _type;                       // type ~ nr bit received (4 / 8 / 26 / 34)
 }
 
 // <internal function:> resets read buffer
 void Wiegand::_clrBuffer()
 {
-  _tick     = millis();             // reset stopwatch
-  _data     = 0;                    // reset buffer
-  _bitCount = 0;                    // reset counter
+  _tick     = millis();               // reset stopwatch
+  _data     = 0;                      // reset buffer
+  _bitCount = 0;                      // reset counter
 }
 
 // <internal function:> process '0' bits coming on line D0
 void Wiegand::_pulseD0()
 {
   #ifdef WIEGAND_DEBUG
-  Serial.print( "0");               // bitstream debuf
+  Serial.print( "0");                 // bitstream debuf
   #endif
 
-  _writeDx( 0x00);                  // next bit = 0
+  _writeDx( 0x00);                    // next bit = 0
 }
 
 // <internal function:> process '1' bits coming on line D1
 void Wiegand::_pulseD1()
 {
   #ifdef WIEGAND_DEBUG
-  Serial.print( "1");               // bitstream debuf
+  Serial.print( "1");                 // bitstream debuf
   #endif
 
-  _writeDx( 0x01);                  // next bit = 1
+  _writeDx( 0x01);                    // next bit = 1
 }
 
 // <internal function:> store received bits in buffer
 void Wiegand::_writeDx( byte bit)
 {
-  _tick = millis();                 // keep ticks between bits received
+  _tick = millis();                   // keep ticks between bits received
   _bitCount++;
 
-  if ( _bitCount >= 34) return;     // ignore last patity bit for WG 34
+  if ( _bitCount >= 34) return;       // ignore last patity bit for WG 34
 
-  _data <<= 1;                      // shift lo bits left, new lo bit 0 = 0
-  _data |= ( bit & 0x01);           // add new bit 0 to lo bit 0
+  _data <<= 1;                        // shift lo bits left, new lo bit 0 = 0
+  _data |= ( bit & 0x01);             // add new bit 0 to lo bit 0
 }
 
 // <internal function:> validate keypad based code (4 / 8 bit)
@@ -134,14 +134,14 @@ bool Wiegand::_validateKeyData()
 bool Wiegand::_validateTagData()
 {
   if (_bitCount == 26) {
-    _data >>= 1;                    // ignore last  parity bit
-    _data  &= 0x00FFFFFF;           // ignore first parity bit
-    return true;                    // W34 (24 bits = first / last parity bit ignored)
+    _data >>= 1;                      // ignore last  parity bit
+    _data  &= 0x00FFFFFF;             // ignore first parity bit
+    return true;                      // W34 (24 bits = first / last parity bit ignored)
   }
 
   if (_bitCount == 34) {
-    return true;                    // W34 (32 bits = first / last parity bit ignored)
+    return true;                      // W34 (32 bits = first / last parity bit ignored)
   }
 
-  return false;                     // no valid reader data
+  return false;                       // no valid reader data
 }
