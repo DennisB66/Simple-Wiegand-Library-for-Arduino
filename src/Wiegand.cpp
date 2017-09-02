@@ -20,7 +20,7 @@ volatile int            Wiegand::_bitCount = 0;
 // initializes the Wiegand device connection (line D0 / D1)
 void Wiegand::begin( int pinD0, int pinD1)
 {
-  _clrBuffer();
+  _clrBuffer();                       // prepare data buffer
 
   pinMode( _pinD0 = pinD0, INPUT);    // Set pin used for line D0 as input
   pinMode( _pinD1 = pinD1, INPUT);    // Set pin used for line D1 as input
