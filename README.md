@@ -16,7 +16,7 @@ getCode()             // return the Wiegand ID code
 getType()             // return the Wiegand ID type (4 bit / 8 bit / 26 bit / 34 bit)
 ```
 
-The functions in the class Wiegand_EEPROM extend the class Wiegang and include:
+The functions in the class Wiegand_EEPROM extend the class Wiegand and include:
 ```
 createTag()           // create a new tag entry in the EEPROM database
 deleteTag()           // delete an existing tag from the EEPROM database
