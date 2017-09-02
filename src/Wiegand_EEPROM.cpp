@@ -1,10 +1,10 @@
-// Copyright	: Dennis Buis (2017)
-// License  	: MIT
-// Platform		: Arduino
-// Library		:	Simple Wiegand Library for Arduino
-// File				: Wiegand_EEPROM.cpp
-// Purpose		: Storing IDs from a Wiegand compatible device (reader / keypad) in EEPROM
-// Repository	:	https://github.com/DennisB66/Simple_Wiegand_Library_for_Arduino
+// Copyright  : Dennis Buis (2017)
+// License    : MIT
+// Platform	  : Arduino
+// Library    : Simple Wiegand Library for Arduino
+// File       : Wiegand_EEPROM.cpp
+// Purpose    : Storing IDs from a Wiegand compatible device (reader / keypad) in EEPROM
+// Repository : https://github.com/DennisB66/Simple-Wiegand-Library-for-Arduino
 
 #include <Arduino.h>
 #include <EEPROM.h>
@@ -48,7 +48,7 @@ unsigned long Wiegand_EEPROM::getCode( int slot)
 // return last active slot (in EEPROM)
 int Wiegand_EEPROM::getSlot()
 {
-	return _slot;                 // last active slot (-1 = no active entry)
+  return _slot;                 // last active slot (-1 = no active entry)
 }
 
 // create tag entry for last active code in EEPROM

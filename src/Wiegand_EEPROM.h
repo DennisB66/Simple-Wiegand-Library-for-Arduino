@@ -1,10 +1,10 @@
-// Copyright	: Dennis Buis (2017)
-// License  	: MIT
-// Platform		: Arduino
-// Library		:	Simple Wiegand Library for Arduino
-// File				: Wiegand_EEPROM.h
-// Purpose		: Storing IDs from a Wiegand compatible device (reader / keypad) in EEPROM
-// Repository	:	https://github.com/DennisB66/Simple_Wiegand_Library_for_Arduino
+// Copyright  : Dennis Buis (2017)
+// License    : MIT
+// Platform   : Arduino
+// Library    : Simple Wiegand Library for Arduino
+// File       : Wiegand_EEPROM.h
+// Purpose    : Storing IDs from a Wiegand compatible device (reader / keypad) in EEPROM
+// Repository : https://github.com/DennisB66/Simple-Wiegand-Library-for-Arduino
 
 #ifndef Wiegand_EEPROM_h
 #define Wiegand_EEPROM_h
