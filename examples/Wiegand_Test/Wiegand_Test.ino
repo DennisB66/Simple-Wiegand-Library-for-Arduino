@@ -2,13 +2,13 @@
 // License    : MIT
 // Platform   : Arduino
 // Library    : Simple Wiegand Library for Arduino
-// File       : Wiegand_EEPROM_Test.ino
+// File       : Wiegand_Test.ino
 // Purpose    : Example code for Wiegand library (see Wiegand.h)
 // Repository : https://github.com/DennisB66/Simple-Wiegand-Library-for-Arduino
 
 #include <Wiegand.h>
 
-Wiegand wg;
+Wiegand wg( 2, 3);    // D0 = pin 2 & D1 = pin 3
 
 void setup() {
   Serial.begin( 9600);

@@ -10,7 +10,7 @@
 #define _WIEGAND_H
 
 #define PIN_D0_DEFAULT 2  // default pin for D0
-#define PIN_D1_DEFAULT 3  // default pin for D0
+#define PIN_D1_DEFAULT 3  // default pin for D1
 
 class Wiegand {
 public:
