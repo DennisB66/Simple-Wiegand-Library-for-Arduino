@@ -6,139 +6,177 @@
 // Purpose    : Example code for Wiegand_EEPROM library (see Wiegand_EEPROM.h)
 // Repository : https://github.com/DennisB66/Simple-Wiegand-Library-for-Arduino
 
+#include <Arduino.h>
 #include <Wiegand_EEPROM.h>
+#include "SimpleUtils.h"
 
 Wiegand_EEPROM wg;
 
-int mode = NORMAL;  // active mode
+enum AccessMode { WAITING_TAG, WAITING_KEY, ACCESS_AUTH };  // states for state machine
+
+int mode    = NORMAL;                                       // check on valid Access
+         // = INSERT;                                       // insert tags + key codes
+         // = DELETE;                                       // delete tags + key codes
+
+void printMenu();                                           // show menu options
+void printTag( int);                                        // show single tag / value (slot)
+void printTags();                                           // show all tag / key values
+void deleteAll();                                           // wipe all tag / key values
 
 void setup() {
-  Serial.begin( 9600);
+  BEGIN( 9600);
 
-  Serial.println( "=================================");
-  Serial.println( "-  Arduino RFID WG reader test  -");
-  Serial.println( "=================================");
-  Serial.println( "");
-  Serial.println( "RFID reader initalizing... ");
+  PRINT( F( "# ================================")) LF;      // show header
+  PRINT( F( "# -  RFID WG EEPROM reader test  -")) LF;
+  PRINT( F( "# ================================")) LF;
+  PRINT( F( "# RFID reader initalizing... ")) LF;
 
-  wg.begin();
+  wg.begin();                                               // start Wiegand device
 
-  if ( wg.hasDevice()) {
-    Serial.println( "RFID reader ready");
+  if ( wg.hasDevice()) {                                    // check on valid device
+    PRINT( F( "# RFID reader ready")) LF;
   } else {
-    Serial.println( "No RFID reader attached!");
+    PRINT( F( "> No RFID reader attached!")) LF;
   }
 
-  printTags();
-  printMenu();
+  printTags();                                              // show all tag / key values
+  printMenu();                                              // show menu options
 }
 
 void loop() {
-  if ( wg.available()) {
-    Serial.print( "Wiegand HEX = ");
-    Serial.print( wg.getCode(), HEX);
-    Serial.print( " (W");
-    Serial.print( wg.getType());
-    Serial.print( ")");
-    Serial.println();
+  if ( wg.available()) {                                    // if new tag / key value available
+    if ( wg.getType() == WTAG) {                            // if tag value (W26 / W32)
+      LABEL( F( "> Wiegand Tag Code = "), hex( wg.getTagCode(), 8));
+      PRINT( F( " (")); PRINT( WGTypeLabel[wg.getType()]); PRINT( F( ")")) LF;
+    }
 
-    if ( mode == NORMAL) {
-      if ( wg.getSlot() < 0) {
-        Serial.println( "Warning: tag not authorized!");
+    if ( wg.getType() == WKEY) {                            // if key value (W4 / W8)
+      LABEL( F( "Wiegand Key Code = "),        wg.getKeyCode()    );
+      PRINT( F( " (")); PRINT( WGTypeLabel[wg.getType()]); PRINT( F( ")")) LF;
+    }
+
+    if ( mode == NORMAL) {                                  // if normal model
+      static AccessMode mode = WAITING_TAG;                 // state for state machine
+
+      switch ( mode) {
+      case WAITING_TAG:                                     // next read must be a tag value
+        if ( wg.searchTag()) {                              // if valid tag value found
+          printTags();
+          printMenu();
+          mode = WAITING_KEY;                               // goto next state
+        } else {
+          PRINT( F( "> Access denied!!!!!")) LF;
+          break;
+        }
+
+      case WAITING_KEY:                                     // next read must be a key value
+        if ( wg.searchKey()) {                              // if no valid key value required
+        } else {
+          PRINT( F( "> Enter key code... ")) LF;
+          mode = ACCESS_AUTH;                               // goto next state
+          break;
+        }
+
+      case ACCESS_AUTH:
+        if ( wg.searchTag() && wg.searchKey()) {            // if valid tag & key value found
+          PRINT( F( "> Access authorized!")) LF;
+        } else {
+          PRINT( F( "> Access denied!!!!!")) LF;
+        }
+
+      default:
+        wg.reset();                                         // clear tag / key values
+        mode = WAITING_TAG;                                 // restart state machine
       }
     }
 
     if ( mode == INSERT) {
-      if ( wg.getSlot() < 0) {
-        if ( wg.createTag()) {
-          Serial.print( "Inserted: ");
-          Serial.print( wg.getCode(), HEX);
-          Serial.println();
-        } else {
-          Serial.println( "Warning: max tags stored!");
-        }
+      // if ( wg.searchTag()) {
+      //   PRINT( F( "> Warning: tag already existing!")) LF;
+      // } else
+      if ( wg.createTag()) {
+        printTags();
+        printMenu();
       } else {
-        Serial.println( "Warning: tag already existing!");
+        PRINT( F( "> Warning: max tags stored!")) LF;
       }
-      Serial.println();
     }
 
     if ( mode == DELETE) {
-      if ( wg.getSlot() < 0) {
-        Serial.println( "Warning: tag not existing!");
+      if ( wg.deleteTag()) {
+        printTags();
+        printMenu();
       } else {
-        if ( wg.deleteTag()) {
-        	Serial.print( "Deleted: ");
-        	Serial.print( wg.getCode(), HEX);
-        	Serial.println();
-        }
+        PRINT( F( "> Warning: tag not existing!")) LF;
       }
     }
-
-    printTags();
-    printMenu();
   }
 
-  if ( Serial.available() > 0) {
-    char c = Serial.read();
+  if ( Serial.available() > 0) {                            // check for new menu entry
+    char c = Serial.read();                                 // read key entry
 
-    if ( c == 'i') { mode = INSERT; printMenu();};
-    if ( c == 'd') { mode = DELETE; printMenu();};
-    if ( c == 'n') { mode = NORMAL; printMenu();};
+    if ( c == 'n') { mode = NORMAL; printMenu(); }          // change to normal mode
+    if ( c == 'i') { mode = INSERT; printMenu(); }          // change to insert mode
+    if ( c == 'd') { mode = DELETE; printMenu(); }          // change to delete mode
+    if ( c == 'x') { mode = NORMAL; deleteAll(); }          // wipe all tag / key values
   }
 }
 
 // show active mode plus options
 void printMenu() {
   if ( mode == NORMAL ) {
-    Serial.println( "MODE = NORMAL (i = insert / d = delete)");
+    PRINT( F( "# MODE = NORMAL (i = insert / d = delete)")) LF;
   }
   if ( mode == INSERT ) {
-    Serial.println( "MODE = INSERT (n = normal / d = delete)");
+    PRINT( F( "# MODE = INSERT (n = normal / d = delete)")) LF;
   }
   if ( mode == DELETE ) {
-    Serial.println( "MODE = DELETE (n = normal / i = insert)");
-  }
-  Serial.println();
-}
-
-// print tag data in EEPROM database to the serial monitor for a specific slot = idx
-void printTag( int slot, bool flag)
-{
-  if (( slot < 0) || ( slot > MAX_TAGS - 1)) {
-    // error
-    Serial.println( "error: index out of range");
-  } else {
-    Serial.print( "tag ");
-    Serial.print( slot, HEX);
-    Serial.print( ": ");
-
-    unsigned long code = wg.getCode( slot);
-
-    // check if tag data is valid
-    if ( code > 0) {
-      char tmp[16]; sprintf( tmp, "%08lX", code);
-      Serial.print( tmp);
-    } else {
-      Serial.print( "--------");
-    }
-  }
-
-  if ( flag) {
-    if ( mode == NORMAL) { Serial.println( " (authorized)"); }
-    if ( mode == INSERT) { Serial.println( " (inserted)"); }
-    if ( mode == DELETE) { Serial.println( " (deleted)"); }
-  } else {
-    Serial.println();
+    PRINT( F( "# MODE = DELETE (n = normal / i = insert)")) LF;
   }
 }
 
 // print all tag data in EEPROM database to the serial monitor, active tag in slot = idx
 void printTags()
 {
-  Serial.println();
-
   for ( int i = 0; i < MAX_TAGS; i++) {
-    printTag( i, i == wg.getSlot());
+    printTag( i);
   }
+}
+
+// print tag data in EEPROM database to the serial monitor for a specific slot = idx
+void printTag( int slot)
+{
+  char buff[10];
+
+  if (( slot < 0) || ( slot > MAX_TAGS - 1)) {
+    // error
+    PRINT( F( "> error: index out of range")) LF;
+  } else {
+    LABEL( F( "# entry "), slot); PRINT( F( " > "));
+
+    unsigned long tag = wg.getTagCode( slot);
+
+    if ( tag >= 0) {
+      sprintf( buff, "%08lX" , tag);
+      LABEL( F( "tag = "), buff);
+    } else {
+      LABEL( F( "tag = "), F( "--------"));
+    }
+
+    unsigned long key = wg.getKeyCode( slot);
+
+    if ( key >= 0) {
+      sprintf( buff, "%06lu", key);
+      LABEL( F( " & key = "), buff);
+    } else {
+      LABEL( F( " & key = "), F( "--------"));
+    }
+  }
+
+  if ( slot == wg.getSlot()) PRINT( F( " (*)")) LF;         // indicate active slot
+}
+
+void deleteAll()
+{
+  wg.deleteAll();
 }

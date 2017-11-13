@@ -9,158 +9,176 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include "Wiegand_EEPROM.h"
+#include "SimpleUtils.h"
 
-#define NO_WIEGAND_EEPROM_DEBUG // use Wiegand_EEPROM_DEBUG for debug info
+#define NO_WIEGAND_EEPROM_DEBUG                             // use Wiegand_EEPROM_DEBUG for debug info
 
 // constructor
-Wiegand_EEPROM::Wiegand_EEPROM()
+Wiegand_EEPROM::Wiegand_EEPROM( int pinD0, int pinD1) : Wiegand( pinD0, pinD1)
 {
-  _code = 0x00000000;           // reset last active code (no active code)
-  _type =  0;                   // reset last active type (no active type)
-  _slot = -1;                   // reset last active slot (no active entry)
+  _slot = -1;                                               // reset last active slot (no active entry)
 
-  _EEPROM2Tags();               // copy EEPROM memory to active memory
+  _EEPROM2Tags();                                           // copy EEPROM memory to active memory
 }
 
 // checks if a new Wiegand code has been received
 bool Wiegand_EEPROM::available()
 {
     if ( Wiegand::available()) {
-      _slot = -1;               // default = not existing in EEPROM
-      searchTag( _code);        // set last active slot if existing in EEPROM
+      searchTag( _tagCode);                                 // set last active slot if existing in EEPROM
 
-      return true;              // new Wiegand data available
+      return true;                                          // new Wiegand data available
     }
 
-    return false;               // no new Wiegand data available
+    return false;                                           // no new Wiegand data available
 }
 
-// return last active code
-unsigned long Wiegand_EEPROM::getCode( int slot)
+// return last active slot
+int Wiegand_EEPROM::getSlot()
 {
-  if (( slot < 0) || ( slot > MAX_TAGS - 1)) {
-    return 0x00000000;          // failure: outside array boundaries
+  return _slot;                                             // last active slot (-1 = no active entry)
+}
+
+// return tag code from lEEPROM ist
+unsigned long Wiegand_EEPROM::getTagCode( int slot)
+{
+  if (( slot >= 0) || ( slot < MAX_TAGS)) {
+    return _tags[slot].tag;                                 // return tag code entry
   } else {
-    return _tags[ slot];        // return tag entry
+    return 0x00000000;                                      // failure: outside array boundaries
   }
 }
 
-// return last active slot (in EEPROM)
-int Wiegand_EEPROM::getSlot()
+// return key code from EEPROM list
+unsigned long Wiegand_EEPROM::getKeyCode( int slot)
 {
-  return _slot;                 // last active slot (-1 = no active entry)
+  if (( slot >= 0) || ( slot < MAX_TAGS)) {
+    return _tags[slot].key;                                 // return tag code entry
+  } else {
+    return 0;                                               // failure: outside array boundaries
+  }
+}
+
+// search for last active tag in EEPROM list (true = found)
+bool Wiegand_EEPROM::searchTag()
+{
+  return searchTag( _tagCode);
+}
+
+// search for specic tag in EEPROM list (true = found)
+bool Wiegand_EEPROM::searchTag( unsigned long tag)
+{
+  _slot = -1;                                               // not found = no success (yet)
+
+  for ( int i = 0; i < MAX_TAGS; i++) {
+    if ( tag == _tags[ i].tag) {                            // tag found in EEPROM list
+      _slot = i;
+
+      return true;                                          // success
+    }
+  }
+
+  return false;                                             // failure
+}
+
+// return specic key in active EEPROM slot (true = found)
+bool Wiegand_EEPROM::searchKey()
+{
+  if (( _slot >= 0) || ( _slot < MAX_TAGS)) {
+    return ( _keyCode == _tags[ _slot].key);                // true = key found in EEPROM list
+  } else {
+    return false;                                           // failure: outside array boundaries
+  }
 }
 
 // create tag entry for last active code in EEPROM
 bool Wiegand_EEPROM::createTag()
 {
-  createTag( _code);            // create tag entry for last active code
+  if ( getType() == WTAG) return createTag( _tagCode);      // create tag entry for last active code
+  if ( getType() == WKEY) return createTag( _tagCode, _keyCode);
+                                                            // create key entry for last active code
+  return false;
 }
 
-// create tag entry for a specific code in EEPROM
-bool Wiegand_EEPROM::createTag( unsigned long code)
+// create tag / key entry in EEPROM list
+bool Wiegand_EEPROM::createTag( unsigned long tag, unsigned long key)
 {
-  for ( int slot = 0; slot < MAX_TAGS; slot++) {
-    if ( _tags[ slot] == code) {
-      return false;             // failure: tag entry already existing
-    }
+  for ( int i = 0; i < MAX_TAGS; i++) {
+    if ( _tags[i].tag == tag) {
+      _tags[i].tag = tag;                                   // update tag entry at empty slot
+      _tags[i].key = key;                                   // update tag entry at empty slot
+      _tags2EEPROM();                                       // update EEPROM
 
-    if (( _tags[ slot] == 0x00000000) || ( _tags[ slot] == 0xFFFFFFFF)) {
-      _tags[ slot] = code;      // create tag entry at empty slot
-      _slot = slot;             // update last active slot
-      _tags2EEPROM();           // update EEPROM
-      return true;              // success
+      _slot = i;
+
+      return true;                                          // tag already existing / key created
     }
   }
 
-  return false;                 // failure: no empty tag entry
+  for ( int i = 0; i < MAX_TAGS; i++) {
+    if ( _tags[i].tag == 0x00000000) {                      // empty slot found
+      _tags[i].tag = tag;                                   // create tag entry at empty slot
+      _tags[i].key = key;                                   // create key entry at empty slot
+      _tags2EEPROM();                                       // update EEPROM
+
+      _slot = i;                                            // set active slot
+
+      return true;                                          // tag already existing / key created
+    }
+  }
+
+  return false;                                             // failure: no tag / key creation
 }
 
 // delete tag entry for last active code in EEPROM (true = deleted)
 bool Wiegand_EEPROM::deleteTag()
 {
-  return deleteTag( _code);     // delete tag entry for last active code
+  return deleteTag( _code);                                 // delete tag entry for last active code
 }
 
 // delete tag entry for a specific slot in EEPROM (true = deleted)
 bool Wiegand_EEPROM::deleteTag( int slot)
 {
-  if (( slot < 0) || ( slot > MAX_TAGS - 1)) {
-    return false;               // failure: outside array boundaries
+  if (( slot >= 0) || ( slot < MAX_TAGS)) {
+    _tags[ slot].tag = 0x00000000;                          // clear tag entry at slot = slot
+    _tags[ slot].key = 0;                                   // clear tag entry at slot = slot
+    _tags2EEPROM();                                         // update EEPROM
+
+    return true;                                            // success = slot wiped
   } else {
-    _tags[ slot] = 0x00000000;  // clear tag entry at slot = slot
-    _tags2EEPROM();             // update EEPROM
-    return true;                // success
+    return false;                                           // failure: outside array boundaries
   }
 }
 
 // delete tag entry for a specific code in EEPROM (true = deleted)
-bool Wiegand_EEPROM::deleteTag( unsigned long code)
+bool Wiegand_EEPROM::deleteTag( unsigned long tag)
 {
-  searchTag(  code);            // determine slot for a specific code
-  deleteTag( _slot);            // delete tag entry at last active slot
+  if ( searchTag( tag)) {                                   // search tag (and set active slot)
+    return deleteTag( _slot);                               // delete tag entry at active slot
+  } else {
+    return false;                                           // failure: tag not found
+  }
 }
-
 
 // delete all tags in EEPROM
 void Wiegand_EEPROM::deleteAll() {
   for ( int i = 0; i < MAX_TAGS; i++){
-    deleteTag( i);              // delete a spcific tag at slot = i
+    deleteTag( i);                                          // delete a spcific tag (slot = i)
   }
 }
-
-// search tag entry for last active code in EEPROM (true = found)
-bool Wiegand_EEPROM::searchTag()
-{
-  searchTag( _code);             // determine slot for last active code
-}
-
-// search tag entry for a specific code in EEPROM (true = found)
-bool Wiegand_EEPROM::searchTag( unsigned long code)
-{
-  _slot = -1;                     // not found = no success (yet)
-
-  for ( int slot = 0; slot < MAX_TAGS; slot++) {
-    if ( code == _tags[ slot]) {  // code found in array
-       // tag found
-       _slot = slot;              // set last active slot
-       return true;               // success
-    }
-  }
-
-  return false;                   // failure
-}
-
-// object used to convert tag IDs from 4 byte array to unsigned long (and vv)
-union TagData {
-   unsigned long l;               // unsigned long (= 4 bytes)
-   byte          b[ 4];           // 4 bytes (= unsigned long)
-};
 
 // copy EEPROM memory to active memory
 void Wiegand_EEPROM::_EEPROM2Tags()
 {
-  TagData tag;                                    // temporary byte buffer
-
-  for ( int slot = 0; slot < MAX_TAGS; slot++) {
-    for ( int i = 0; i < 4; i++) {
-      tag.b[ i] = EEPROM.read( slot * 4 + i);     // copy EEPROM to buffer (byte-wise)
-    }
-
-    _tags[ slot] = tag.l;                         // copy bytes to array entry
+  for ( int i = 0; i < MAX_TAGS; i++) {
+    EEPROM.get( i * sizeof(AccessCode), _tags[i]);          // copy EEPROM to buffer (byte-wise)
   }
 }
 
 // copy active memory to EEPROM memory
 void Wiegand_EEPROM::_tags2EEPROM()
 {
-  TagData tag;                                    // temporary byte buffer
-
-  for ( int slot = 0; slot < MAX_TAGS; slot++) {
-    tag.l = _tags[ slot];                         // copy array entry to buffer
-
-    for ( int i = 0; i < 4; i++) {
-      EEPROM.update( slot * 4 + i, tag.b[ i]);    // copy buffer to EEPROM (byte-wise)
-    }
+  for ( int i = 0; i < MAX_TAGS; i++) {
+    EEPROM.put( i * sizeof(AccessCode), _tags[i]);          // copy EEPROM to buffer (byte-wise)
   }
 }
