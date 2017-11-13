@@ -51,7 +51,7 @@ void loop() {
     }
 
     if ( wg.getType() == WKEY) {                            // if key value (W4 / W8)
-      LABEL( F( "Wiegand Key Code = "),        wg.getKeyCode()    );
+      LABEL( F( "> Wiegand Key Code = "), dec( wg.getKeyCode(), 6));
       PRINT( F( " (")); PRINT( WGTypeLabel[wg.getType()]); PRINT( F( ")")) LF;
     }
 
@@ -146,10 +146,7 @@ void printTags()
 // print tag data in EEPROM database to the serial monitor for a specific slot = idx
 void printTag( int slot)
 {
-  char buff[10];
-
   if (( slot < 0) || ( slot > MAX_TAGS - 1)) {
-    // error
     PRINT( F( "> error: index out of range")) LF;
   } else {
     LABEL( F( "# entry "), slot); PRINT( F( " > "));
@@ -157,8 +154,7 @@ void printTag( int slot)
     unsigned long tag = wg.getTagCode( slot);
 
     if ( tag >= 0) {
-      sprintf( buff, "%08lX" , tag);
-      LABEL( F( "tag = "), buff);
+      LABEL( F( "tag = "), hex( tag, 8));
     } else {
       LABEL( F( "tag = "), F( "--------"));
     }
@@ -166,8 +162,7 @@ void printTag( int slot)
     unsigned long key = wg.getKeyCode( slot);
 
     if ( key >= 0) {
-      sprintf( buff, "%06lu", key);
-      LABEL( F( " & key = "), buff);
+      LABEL( F( " & key = "), dec( key, 6));
     } else {
       LABEL( F( " & key = "), F( "--------"));
     }
