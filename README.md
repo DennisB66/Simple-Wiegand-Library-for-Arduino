@@ -12,21 +12,23 @@ Update 0.6: multi factor authentication supported (cards + pin code)
 The functions in the class Wiegand include:
 ```
 begin()               // initialize device
+reset()		      // reset tag / key values
 hasDevice()	      // check if a Wiegand device is connected
 available()           // check if a new Wiegand ID has been received
 getCode()             // return the Wiegand ID code
 getType()             // return the Wiegand ID type (WKEY:4 bit / 8 bit, WTAG: 26 bit / 34 bit)
+getTagCode()	      // return current Wiegand tag code
+getKeyCode()	      // return current Wiegand key code
 ```
 
 The functions in the class Wiegand_EEPROM extend the class Wiegand and include:
 ```
-clear()		      // reset tag / key values
-getTagCode()	      // return current Wiegand tag code
-getKeyCode()	      // return current Wiegand key code
+getSlot()	      // return current active slot in EEPROM database
 searchTag()           // search the EEPROM database for a specific tag
-createTag()           // create a new tag entry in the EEPROM database
-deleteTag()           // delete an existing tag from the EEPROM database
-deleteAll()           // delete all tags from the EEPROM database
+searchKey()           // search the EEPROM database for a specific key
+createTag()           // create a (new) tag / key entry in the EEPROM database
+deleteTag()           // delete an existing tag / key from the EEPROM database
+deleteAll()           // delete all tag / key entries from the EEPROM database
 ```
 
 ## Technical notes
