@@ -31,9 +31,8 @@ deleteTag()           // delete an existing tag / key from the EEPROM database
 deleteAll()           // delete all tag / key entries from the EEPROM database
 ```
 
-## Technical notes
-Library dependencies:
-```
-Simple Utility Library for Arduino (https://github.com/DennisB66/Simple-Utility-Library-for-Arduino)
-```
+## Library Dependencies
+
+- https://github.com/DennisB66/Simple-Utility-Library-for-Arduino
+
 
